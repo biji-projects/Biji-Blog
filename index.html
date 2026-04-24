@@ -6,155 +6,50 @@
 <title>biji-BLOG</title>
 
 <style>
-body {
-  margin:0;
-  font-family: Georgia, serif;
-  background: linear-gradient(to bottom, #87CEEB, #2c3e50);
-  color:#fdf6e3;
-}
+body{margin:0;font-family:Georgia,serif;background:linear-gradient(to bottom,#87CEEB,#2c3e50);color:#fdf6e3;}
+.header{text-align:center;padding:20px}.title{font-size:56px}
+.container{display:flex}
+.left{width:40%;padding:20px}.center{width:60%}
 
-.header { text-align:center; padding:20px; }
-.title { font-size:56px; }
+.profile{text-align:center}
+.profile-pic{width:90px;height:90px;border-radius:50%;border:3px solid white;cursor:pointer}
+.username{cursor:pointer}
 
-.container { display:flex; }
-.left { width:40%; padding:20px; }
-.center { width:60%; }
+.small-input{width:80%;padding:6px;margin:5px 0}
+button{padding:6px 10px;cursor:pointer}
 
-/* PROFILE */
-.profile { text-align:center; }
-.profile-pic {
-  width:90px; height:90px;
-  border-radius:50%;
-  border:3px solid white;
-  cursor:pointer;
-}
+/* ENVELOPE */
+.bookshelf{background:#6b4f2a;padding:10px;border-radius:10px;margin-top:10px}
+.shelf-row{display:flex;flex-wrap:wrap;gap:10px}
+.envelope{width:100px;height:70px;background:#f6d8a8;border-radius:6px;cursor:pointer;position:relative;transition:.3s}
+.envelope:hover{transform:scale(1.05)}
+.envelope.full{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(1.6);width:360px;height:240px;z-index:999}
+.flap{position:absolute;width:100%;height:50%;background:#e8c38c;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:.5s}
+.envelope.open .flap{transform:rotateX(180deg)}
+.letter{position:absolute;inset:10px;background:#fff8e7;padding:10px;color:#000;transform:translateY(20px);opacity:0;transition:.5s}
+.envelope.open .letter{transform:translateY(0);opacity:1}
+.delete-btn{position:absolute;top:5px;right:5px;background:red;color:white;font-size:10px}
 
-.username { cursor:pointer; }
-
-/* INPUT FIX */
-.small-input {
-  width:80%;
-  padding:6px;
-  margin:5px 0;
-}
-
-button { padding:6px 10px; cursor:pointer; }
+/* NOTEBOOK */
+.notebook{margin-top:15px;background:#8b0000;padding:10px;border-radius:10px}
+.page-container{display:flex;overflow:hidden;transition:.5s}
+.page{min-width:100%;background:#fff8e7;color:#000;padding:15px;font-family:Georgia,serif}
+.nav-btn{margin:5px}
 
 /* LETTERS */
-.mailbox {
-  max-width:500px;
-  margin:20px auto;
-}
-
-.mail {
-  background:#f6d8a8;
-  color:#333;
-  padding:10px;
-  margin:10px;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-.mail.full {
-  position:fixed;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%) scale(1.4);
-  width:350px;
-  z-index:999;
-}
-
-.mail-content { display:none; }
-.mail.open .mail-content { display:block; }
-
-/* BOOKSHELF */
-.bookshelf {
-  background:#6b4f2a;
-  padding:10px;
-  border-radius:10px;
-  margin-top:10px;
-}
-
-.shelf-row { display:flex; flex-wrap:wrap; gap:10px; }
-
-.envelope {
-  width:100px; height:70px;
-  background:#f6d8a8;
-  border-radius:6px;
-  cursor:pointer;
-  position:relative;
-}
-
-.envelope.full {
-  position:fixed;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%) scale(1.5);
-  width:350px; height:220px;
-  z-index:999;
-}
-
-.flap {
-  position:absolute;
-  width:100%; height:50%;
-  background:#e8c38c;
-  clip-path:polygon(0 0,100% 0,50% 100%);
-  transform-origin:top;
-  transition:.5s;
-}
-
-.envelope.open .flap { transform:rotateX(180deg); }
-
-.letter {
-  position:absolute;
-  inset:8px;
-  background:#fff8e7;
-  padding:8px;
-  color:#000;
-  opacity:0;
-}
-
-.envelope.open .letter { opacity:1; }
-
-.delete-btn {
-  position:absolute;
-  top:5px; right:5px;
-  background:red;
-  color:white;
-  font-size:10px;
-}
-
-/* NOTEBOOK FIX */
-.notebook {
-  margin-top:15px;
-  background:#8b0000;
-  padding:10px;
-  border-radius:10px;
-}
-
-.page-container {
-  display:flex;
-  overflow:hidden;
-}
-
-.page {
-  min-width:100%;
-  background:#fff8e7;
-  color:#000;
-  padding:15px;
-  font-family: Georgia, serif;
-}
-
-.nav-btn { margin:5px; }
+.mailbox{max-width:500px;margin:20px auto}
+.mail{background:#f6d8a8;color:#333;padding:10px;margin:10px;border-radius:8px;cursor:pointer;transition:.3s}
+.mail:hover{transform:scale(1.03)}
+.mail.full{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(1.4);width:350px;z-index:999}
+.mail-content{display:none}
+.mail.open .mail-content{display:block}
 
 /* POPUP */
-.popup {
-  position:fixed;
-  bottom:20px; right:20px;
-  background:#fff;
-  color:#333;
-  padding:10px;
-  border-radius:8px;
-  display:none;
-}
+.popup{position:fixed;bottom:20px;right:20px;background:#fff;color:#333;padding:10px;border-radius:8px;display:none}
+
+/* GALLERY */
+.side-gallery{position:fixed;right:10px;top:120px;display:flex;flex-direction:column;gap:10px}
+.side-gallery img{width:70px;height:70px;border-radius:8px;object-fit:cover;cursor:pointer}
 
 </style>
 </head>
@@ -171,13 +66,10 @@ button { padding:6px 10px; cursor:pointer; }
 </div>
 
 <div class="container">
-
 <div class="left">
-
 <h3>✉️ Add Letter</h3>
 <input id="quoteText" class="small-input">
 <button onclick="addQuote()">Add</button>
-
 <div class="bookshelf"><div id="shelf" class="shelf-row"></div></div>
 
 <h3>📓 Journal</h3>
@@ -194,16 +86,15 @@ button { padding:6px 10px; cursor:pointer; }
 <input id="popupText" class="small-input">
 <input type="datetime-local" id="popupTime" class="small-input">
 <button onclick="schedulePopup()">Set</button>
-
 </div>
 
 <div class="center">
 <h3 style="text-align:center">📬 Letters Received</h3>
 <div class="mailbox" id="mailbox"></div>
 </div>
-
 </div>
 
+<div class="side-gallery" id="gallery"></div>
 <div id="popupBox" class="popup"></div>
 
 <script>
@@ -212,14 +103,18 @@ let journal=JSON.parse(localStorage.getItem('journal')||'[]');
 let scheduled=JSON.parse(localStorage.getItem('scheduled')||'[]');
 let profile=JSON.parse(localStorage.getItem('profile')||'{}');
 let answers=JSON.parse(localStorage.getItem('answers')||'{}');
+let gallery=JSON.parse(localStorage.getItem('gallery')||'[]');
 let pageIndex=0;
 let today=new Date().toDateString();
-
 if(answers.date!==today){answers={date:today};}
 
 const questions=[
-"What made you smile today?","What challenged you today?","What are you grateful for?",
-"Did you take care of yourself?","What do you need right now?","What inspired you?"
+"What made you smile today?",
+"What challenged you today?",
+"What are you grateful for?",
+"Did you take care of yourself?",
+"What do you need right now?",
+"What inspired you?"
 ];
 
 function saveAll(){
@@ -228,26 +123,46 @@ localStorage.setItem('journal',JSON.stringify(journal));
 localStorage.setItem('scheduled',JSON.stringify(scheduled));
 localStorage.setItem('profile',JSON.stringify(profile));
 localStorage.setItem('answers',JSON.stringify(answers));
+localStorage.setItem('gallery',JSON.stringify(gallery));
 }
 
+/* ✅ FIXED LETTER SYSTEM */
 function renderQuestions(){
 mailbox.innerHTML='';
 questions.forEach((q,i)=>{
 let d=document.createElement('div');
 d.className='mail';
-d.innerHTML=`<b>Letter ${i+1}</b><p>${q}</p><div class='mail-content'><input class='small-input' onchange='saveAns(${i},this.value)'></div>`;
-d.onclick=()=>{d.classList.toggle('full');d.classList.toggle('open');};
+
+d.innerHTML=`
+<b>Letter ${i+1}</b>
+<p>${q}</p>
+
+<div class='mail-content'>
+  <input class='small-input' placeholder='Write your answer...' onchange='saveAns(${i},this.value)'>
+  <br><br>
+  <button onclick='closeMail(event,this)'>Done</button>
+</div>
+`;
+
+d.onclick=()=>{
+  d.classList.add('full');
+  d.classList.add('open');
+};
+
 mailbox.appendChild(d);
 });
 }
 
+function closeMail(e,btn){
+e.stopPropagation();
+const mail=btn.closest('.mail');
+mail.classList.remove('full');
+mail.classList.remove('open');
+}
+
 function saveAns(i,v){answers[i]=v;saveAll();}
 
-function changePic(e){let r=new FileReader();r.onload=()=>{profile.pic=r.result;profilePic.src=r.result;saveAll();};r.readAsDataURL(e.target.files[0]);}
-
-function editName(){let n=prompt('Name');if(n){profile.name=n;username.innerText=n;saveAll();}}
-function loadProfile(){if(profile.pic)profilePic.src=profile.pic;if(profile.name)username.innerText=profile.name;}
-
+/* ENVELOPES */
 function renderQuotes(){
 shelf.innerHTML='';
 quotes.forEach((q,i)=>{
@@ -258,38 +173,65 @@ d.onclick=()=>{d.classList.toggle('full');d.classList.toggle('open');};
 shelf.appendChild(d);
 });
 }
-
-function delQ(e,i){e.stopPropagation();quotes.splice(i,1);saveAll();renderQuotes();}
 function addQuote(){if(!quoteText.value)return;quotes.unshift({text:quoteText.value});quoteText.value='';saveAll();renderQuotes();}
+function delQ(e,i){e.stopPropagation();quotes.splice(i,1);saveAll();renderQuotes();}
 
+/* JOURNAL */
+function renderJournal(){pages.innerHTML='';journal.forEach(j=>{pages.innerHTML+=`<div class='page'>${j.text}</div>`});updatePage();}
 function addJournal(){if(!journalInput.value)return;journal.unshift({text:journalInput.value});journalInput.value='';saveAll();renderJournal();}
+function updatePage(){pages.style.transform=`translateX(-${pageIndex*100}%)`}
+function nextPage(){if(pageIndex<journal.length-1){pageIndex++;updatePage();}}
+function prevPage(){if(pageIndex>0){pageIndex--;updatePage();}}
 
-function renderJournal(){
-pages.innerHTML='';
-journal.forEach(j=>{
-pages.innerHTML+=`<div class='page'>${j.text}</div>`;
-});
-updatePage();
-}
-
-function updatePage(){
-pages.style.transform=`translateX(-${pageIndex*100}%)`;
-pages.style.display='flex';
-}
-
-function nextPage(){ if(pageIndex<journal.length-1){pageIndex++; updatePage();}}
-function prevPage(){ if(pageIndex>0){pageIndex--; updatePage();}}
-
+/* POPUP */
 function schedulePopup(){let t=new Date(popupTime.value).getTime();if(!popupText.value||!t)return;scheduled.push({text:popupText.value,time:t});saveAll();}
-
 function check(){let now=Date.now();scheduled=scheduled.filter(s=>{if(s.time<=now){popupBox.innerText=s.text;popupBox.style.display='block';setTimeout(()=>popupBox.style.display='none',5000);return false;}return true;});saveAll();}
-
 setInterval(check,1000);
+
+/* GALLERY */
+function renderGallery(){
+const g=document.getElementById('gallery');
+g.innerHTML='';
+gallery.forEach((img,i)=>{
+let el=document.createElement('img');
+el.src=img;
+el.onclick=()=>{
+let input=document.createElement('input');
+input.type='file';
+input.onchange=e=>{
+let r=new FileReader();
+r.onload=()=>{gallery[i]=r.result;saveAll();renderGallery();};
+r.readAsDataURL(e.target.files[0]);
+};
+input.click();
+};
+g.appendChild(el);
+});
+let add=document.createElement('img');
+add.src='https://via.placeholder.com/70';
+add.onclick=()=>{
+let input=document.createElement('input');
+input.type='file';
+input.onchange=e=>{
+let r=new FileReader();
+r.onload=()=>{gallery.push(r.result);saveAll();renderGallery();};
+r.readAsDataURL(e.target.files[0]);
+};
+input.click();
+};
+g.appendChild(add);
+}
+
+/* PROFILE */
+function changePic(e){let r=new FileReader();r.onload=()=>{profile.pic=r.result;profilePic.src=r.result;saveAll();};r.readAsDataURL(e.target.files[0]);}
+function editName(){let n=prompt('Name');if(n){profile.name=n;username.innerText=n;saveAll();}}
+function loadProfile(){if(profile.pic)profilePic.src=profile.pic;if(profile.name)username.innerText=profile.name;}
 
 loadProfile();
 renderQuestions();
 renderQuotes();
 renderJournal();
+renderGallery();
 </script>
 
 </body>
