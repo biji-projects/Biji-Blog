@@ -13,56 +13,91 @@ body {
   color:#fdf6e3;
 }
 
-/* HEADER */
+/* HEADER LEFT */
+.section-header {
+  text-align:left;
+  padding:20px;
+  font-size:22px;
+}
+
 .header { text-align:center; padding:20px; }
-.title { font-size:56px; letter-spacing:2px; }
+.title { font-size:56px; }
 
 /* PROFILE */
 .profile { text-align:center; }
 .profile-pic {
-  width:100px; height:100px;
+  width:90px; height:90px;
   border-radius:50%;
   border:3px solid white;
   cursor:pointer;
 }
 .username { margin-top:10px; cursor:pointer; }
 
-/* SECTION HEADER RIGHT */
-.section-header {
-  text-align:right;
-  padding-right:30px;
-  font-size:22px;
-  opacity:0.8;
+/* QUESTION GRID */
+.mailbox {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+  max-width:800px;
+  margin:20px auto;
 }
 
-/* MAIL */
-.mailbox { max-width:500px; margin:20px auto; }
 .mail {
-  background:#fff8e7;
+  background:#f6d8a8;
   color:#333;
-  padding:12px;
-  margin-bottom:10px;
+  padding:10px;
   border-radius:8px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.3);
-  transform:translateY(10px);
-  opacity:0;
-  animation:fadeIn 0.6s forwards;
+  position:relative;
+  cursor:pointer;
+  transition:transform 0.3s;
 }
 
-@keyframes fadeIn {
-  to { opacity:1; transform:translateY(0); }
+.mail:hover { transform:scale(1.05); }
+
+.mail.full {
+  position:fixed;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%) scale(1.5);
+  width:400px;
+  z-index:999;
 }
 
-/* INPUT */
-textarea, input {
-  width:100%;
-  margin:5px 0;
-  padding:8px;
-  border-radius:6px;
-  border:none;
+.mail-content {
+  display:none;
+  background:#fff8e7;
+  padding:10px;
+  margin-top:10px;
 }
 
-button { padding:8px; cursor:pointer; }
+.mail.open .mail-content { display:block; }
+
+/* SMALL INPUT */
+.small-input {
+  width:90%;
+  padding:6px;
+  margin-top:5px;
+}
+
+/* SIDE BOX (IMAGE) */
+.side-box {
+  position:fixed;
+  top:100px;
+  right:20px;
+  width:120px;
+  height:120px;
+  background:#ffffffcc;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.side-box img {
+  width:100%; height:100%;
+  object-fit:cover;
+  border-radius:10px;
+  cursor:pointer;
+}
 
 /* BOOKSHELF */
 .bookshelf {
@@ -70,7 +105,6 @@ button { padding:8px; cursor:pointer; }
   margin:20px;
   padding:15px;
   border-radius:10px;
-  box-shadow:inset 0 5px 10px rgba(0,0,0,0.5);
 }
 .shelf-row { display:flex; flex-wrap:wrap; gap:10px; }
 
@@ -80,10 +114,7 @@ button { padding:8px; cursor:pointer; }
   border-radius:6px;
   cursor:pointer;
   position:relative;
-  transition:transform 0.3s;
 }
-
-.envelope:hover { transform:scale(1.05); }
 
 .envelope.full {
   position:fixed;
@@ -127,9 +158,7 @@ button { padding:8px; cursor:pointer; }
   margin:20px auto;
   perspective:1200px;
 }
-
 .book { width:100%; height:100%; position:relative; }
-
 .page {
   width:100%;
   height:100%;
@@ -142,10 +171,8 @@ button { padding:8px; cursor:pointer; }
   transform-origin:left;
   transition:transform 0.7s;
 }
-
 .page.turn { transform:rotateY(-180deg); }
 
-/* POPUP */
 .popup {
   position:fixed;
   bottom:20px; right:20px;
@@ -154,8 +181,6 @@ button { padding:8px; cursor:pointer; }
   padding:12px;
   border-radius:10px;
   display:none;
-  box-shadow:0 5px 20px rgba(0,0,0,0.4);
-  animation:fadeIn 0.5s;
 }
 
 </style>
@@ -173,23 +198,30 @@ button { padding:8px; cursor:pointer; }
 <div id="username" class="username" onclick="editName()">Set Name</div>
 </div>
 
-<div class="section-header">📬 Daily Letters</div>
+<div class="section-header">📬 Letters Received</div>
 <div class="mailbox" id="mailbox"></div>
 
 <div class="section-header">✉️ Stored Letters</div>
-<textarea id="quoteText"></textarea>
+<input id="quoteText" class="small-input">
 <button onclick="addQuote()">Add</button>
 <div class="bookshelf"><div id="shelf" class="shelf-row"></div></div>
 
 <div class="section-header">📓 Journal</div>
-<textarea id="journalInput"></textarea>
+<input id="journalInput" class="small-input">
 <button onclick="addJournal()">Save</button>
 <div class="notebook"><div id="book" class="book"></div></div>
 
 <div class="section-header">⏳ Messages</div>
-<input id="popupText">
-<input type="datetime-local" id="popupTime">
+<input id="popupText" class="small-input">
+<input type="datetime-local" id="popupTime" class="small-input">
 <button onclick="schedulePopup()">Set</button>
+
+<div class="side-box">
+<label>
+<img id="sideImg" src="https://via.placeholder.com/120">
+<input type="file" hidden onchange="changeSide(event)">
+</label>
+</div>
 
 <div id="popupBox" class="popup"></div>
 
@@ -199,18 +231,12 @@ let journal=JSON.parse(localStorage.getItem('journal')||'[]');
 let scheduled=JSON.parse(localStorage.getItem('scheduled')||'[]');
 let profile=JSON.parse(localStorage.getItem('profile')||'{}');
 let answers=JSON.parse(localStorage.getItem('answers')||'{}');
+let side=localStorage.getItem('sideImg');
 let today=new Date().toDateString();
 
 if(answers.date!==today){answers={date:today};}
 
-const questions=[
-"How are you really feeling today?","What made you smile?","What drained you?",
-"Did you take care of yourself?","What are you grateful for?","What are you worried about?",
-"Did you rest enough?","What inspired you?","What are you avoiding?","What made today meaningful?",
-"Did you feel calm?","Did you feel overwhelmed?","What do you need right now?","What are you proud of?",
-"Did you connect with someone?","What did you learn?","What do you want tomorrow to feel like?",
-"Are you hopeful?","What would you tell yourself?","What do you need to let go of?"
-];
+const questions=[...Array(10)].map((_,i)=>`Letter prompt ${i+1}`);
 
 function saveAll(){
 localStorage.setItem('quotes',JSON.stringify(quotes));
@@ -223,24 +249,21 @@ localStorage.setItem('answers',JSON.stringify(answers));
 function renderQuestions(){
 mailbox.innerHTML='';
 questions.forEach((q,i)=>{
-mailbox.innerHTML+=`<div class='mail'>
-<b>Letter ${i+1}</b><br><small>${today}</small>
-<p>${q}</p>
-<textarea placeholder='Write your reply...' onchange="saveAns(${i},this.value)"></textarea>
-</div>`;
+let d=document.createElement('div');
+d.className='mail';
+d.innerHTML=`<b>Letter ${i+1}</b><p>${q}</p><div class='mail-content'><input class='small-input' placeholder='Reply...' onchange='saveAns(${i},this.value)'></div>`;
+d.onclick=()=>{d.classList.toggle('full');d.classList.toggle('open');};
+mailbox.appendChild(d);
 });
 }
 
 function saveAns(i,v){answers[i]=v;saveAll();}
 
-function changePic(e){
-let r=new FileReader();
-r.onload=()=>{profile.pic=r.result;profilePic.src=r.result;saveAll();};
-r.readAsDataURL(e.target.files[0]);
-}
+function changePic(e){let r=new FileReader();r.onload=()=>{profile.pic=r.result;profilePic.src=r.result;saveAll();};r.readAsDataURL(e.target.files[0]);}
+function changeSide(e){let r=new FileReader();r.onload=()=>{localStorage.setItem('sideImg',r.result);sideImg.src=r.result;};r.readAsDataURL(e.target.files[0]);}
 
 function editName(){let n=prompt('Name');if(n){profile.name=n;username.innerText=n;saveAll();}}
-function loadProfile(){if(profile.pic)profilePic.src=profile.pic;if(profile.name)username.innerText=profile.name;}
+function loadProfile(){if(profile.pic)profilePic.src=profile.pic;if(profile.name)username.innerText=profile.name;if(side)sideImg.src=side;}
 
 function renderQuotes(){
 shelf.innerHTML='';
