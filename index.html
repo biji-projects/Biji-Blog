@@ -1,120 +1,161 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { motion } from "framer-motion";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Quotes & Journal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+      margin: 0;
+      padding: 20px;
+    }
+    h2 { margin-top: 30px; }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 15px;
+      margin: 10px 0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 10px;
+      background: black;
+      color: white;
+      cursor: pointer;
+    }
+    img { max-width: 100%; border-radius: 10px; margin-top: 10px; }
+    #popup {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: black;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
 
-export default function App() {
-  const [quotes, setQuotes] = useState([]);
-  const [text, setText] = useState("");
-  const [source, setSource] = useState("");
-  const [image, setImage] = useState("");
-  const [journal, setJournal] = useState([]);
-  const [entry, setEntry] = useState("");
-  const [popupMessage, setPopupMessage] = useState("");
+<div id="popup"></div>
 
-  useEffect(() => {
-    const savedQuotes = JSON.parse(localStorage.getItem("quotes")) || [];
-    const savedJournal = JSON.parse(localStorage.getItem("journal")) || [];
-    setQuotes(savedQuotes);
-    setJournal(savedJournal);
-  }, []);
+<h2>Add Quote</h2>
+<div class="card">
+  <textarea id="quoteText" placeholder="Your favorite quote..."></textarea>
+  <input id="quoteSource" placeholder="Where did you get it?" />
+  <input id="quoteImage" placeholder="Image URL (optional)" />
+  <button onclick="addQuote()">Save Quote</button>
+</div>
 
-  useEffect(() => {
-    localStorage.setItem("quotes", JSON.stringify(quotes));
-  }, [quotes]);
+<h2>Your Quotes</h2>
+<div id="quotes"></div>
 
-  useEffect(() => {
-    localStorage.setItem("journal", JSON.stringify(journal));
-  }, [journal]);
+<h2>Gratitude Journal</h2>
+<div class="card">
+  <textarea id="journalText" placeholder="What are you grateful for?"></textarea>
+  <button onclick="addJournal()">Add Entry</button>
+</div>
+<div id="journal"></div>
 
-  const addQuote = () => {
+<h2>Popup Message</h2>
+<div class="card">
+  <input id="popupInput" placeholder="Type a message..." />
+  <button onclick="showPopup()">Show Popup</button>
+</div>
+
+<script>
+  let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
+  let journal = JSON.parse(localStorage.getItem('journal')) || [];
+
+  function renderQuotes() {
+    const container = document.getElementById('quotes');
+    container.innerHTML = '';
+    quotes.forEach(q => {
+      container.innerHTML += `
+        <div class="card">
+          <p><i>"${q.text}"</i></p>
+          <small>— ${q.source || 'Unknown'}</small><br>
+          <small>${q.date}</small>
+          ${q.image ? `<img src="${q.image}" />` : ''}
+        </div>
+      `;
+    });
+  }
+
+  function renderJournal() {
+    const container = document.getElementById('journal');
+    container.innerHTML = '';
+    journal.forEach(j => {
+      container.innerHTML += `
+        <div class="card">
+          <p>${j.text}</p>
+          <small>${j.date}</small>
+        </div>
+      `;
+    });
+  }
+
+  function addQuote() {
+    const text = document.getElementById('quoteText').value;
+    const source = document.getElementById('quoteSource').value;
+    const image = document.getElementById('quoteImage').value;
     if (!text) return;
-    const newQuote = {
+
+    quotes.unshift({
       text,
       source,
       image,
-      date: new Date().toLocaleDateString(),
-    };
-    setQuotes([newQuote, ...quotes]);
-    setText("");
-    setSource("");
-    setImage("");
-  };
+      date: new Date().toLocaleDateString()
+    });
 
-  const addJournal = () => {
-    if (!entry) return;
-    const newEntry = {
-      entry,
-      date: new Date().toLocaleDateString(),
-    };
-    setJournal([newEntry, ...journal]);
-    setEntry("");
-  };
+    localStorage.setItem('quotes', JSON.stringify(quotes));
+    renderQuotes();
+    document.getElementById('quoteText').value = '';
+    document.getElementById('quoteSource').value = '';
+    document.getElementById('quoteImage').value = '';
+  }
 
-  return (
-    <div className="p-6 grid gap-6">
-      {popupMessage && (
-        <motion.div
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="fixed top-4 left-1/2 -translate-x-1/2 bg-black text-white px-6 py-3 rounded-xl shadow-lg"
-        >
-          {popupMessage}
-        </motion.div>
-      )}
+  function addJournal() {
+    const text = document.getElementById('journalText').value;
+    if (!text) return;
 
-      <Card>
-        <CardContent className="p-4 space-y-3">
-          <h2 className="text-xl font-bold">Add Quote</h2>
-          <Textarea placeholder="Your favorite quote..." value={text} onChange={(e) => setText(e.target.value)} />
-          <Input placeholder="Where did you get it?" value={source} onChange={(e) => setSource(e.target.value)} />
-          <Input placeholder="Image URL (optional)" value={image} onChange={(e) => setImage(e.target.value)} />
-          <Button onClick={addQuote}>Save Quote</Button>
-        </CardContent>
-      </Card>
+    journal.unshift({
+      text,
+      date: new Date().toLocaleDateString()
+    });
 
-      <div className="grid md:grid-cols-3 gap-4">
-        {quotes.map((q, i) => (
-          <motion.div key={i} whileHover={{ scale: 1.05 }}>
-            <Card className="rounded-2xl shadow-lg bg-gradient-to-br from-pink-100 to-purple-100">
-              <CardContent className="p-4">
-                <p className="italic">"{q.text}"</p>
-                <p className="text-sm mt-2">— {q.source}</p>
-                <p className="text-xs text-gray-500">{q.date}</p>
-                {q.image && <img src={q.image} alt="quote" className="mt-2 rounded-xl" />}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+    localStorage.setItem('journal', JSON.stringify(journal));
+    renderJournal();
+    document.getElementById('journalText').value = '';
+  }
 
-      <Card>
-        <CardContent className="p-4 space-y-3">
-          <h2 className="text-xl font-bold">Gratitude Journal</h2>
-          <Textarea placeholder="What are you grateful for today?" value={entry} onChange={(e) => setEntry(e.target.value)} />
-          <Button onClick={addJournal}>Add Entry</Button>
-        </CardContent>
-      </Card>
+  function showPopup() {
+    const message = document.getElementById('popupInput').value;
+    const popup = document.getElementById('popup');
+    popup.innerText = message;
+    popup.style.display = 'block';
 
-      <div className="grid md:grid-cols-2 gap-4">
-        {journal.map((j, i) => (
-          <Card key={i} className="rounded-2xl">
-            <CardContent className="p-4">
-              <p>{j.entry}</p>
-              <p className="text-xs text-gray-500">{j.date}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+    setTimeout(() => {
+      popup.style.display = 'none';
+    }, 3000);
+  }
 
-      <Card>
-        <CardContent className="p-4 space-y-3">
-          <h2 className="text-xl font-bold">Set Popup Message</h2>
-          <Input placeholder="Type a message to display..." onChange={(e) => setPopupMessage(e.target.value)} />
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+  renderQuotes();
+  renderJournal();
+</script>
+
+</body>
+</html>
