@@ -14,43 +14,47 @@ body {
 }
 
 /* HEADER */
-.header {
-  text-align:center;
-  padding:20px;
-}
-
-.title {
-  font-size:48px;
-}
+.header { text-align:center; padding:20px; }
+.title { font-size:56px; letter-spacing:2px; }
 
 /* PROFILE */
 .profile { text-align:center; }
-
 .profile-pic {
   width:100px; height:100px;
   border-radius:50%;
   border:3px solid white;
   cursor:pointer;
 }
+.username { margin-top:10px; cursor:pointer; }
 
-.username {
-  font-size:20px;
-  margin-top:10px;
-  cursor:pointer;
+/* SECTION HEADER RIGHT */
+.section-header {
+  text-align:right;
+  padding-right:30px;
+  font-size:22px;
+  opacity:0.8;
 }
 
-/* QUESTIONS */
-.questions {
-  background:#ffffffcc;
+/* MAIL */
+.mailbox { max-width:500px; margin:20px auto; }
+.mail {
+  background:#fff8e7;
   color:#333;
-  max-width:400px;
-  margin:20px auto;
-  padding:15px;
-  border-radius:10px;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.3);
+  transform:translateY(10px);
+  opacity:0;
+  animation:fadeIn 0.6s forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity:1; transform:translateY(0); }
 }
 
 /* INPUT */
-textarea, input, select {
+textarea, input {
   width:100%;
   margin:5px 0;
   padding:8px;
@@ -58,11 +62,7 @@ textarea, input, select {
   border:none;
 }
 
-button {
-  padding:8px;
-  margin:5px 0;
-  cursor:pointer;
-}
+button { padding:8px; cursor:pointer; }
 
 /* BOOKSHELF */
 .bookshelf {
@@ -70,8 +70,8 @@ button {
   margin:20px;
   padding:15px;
   border-radius:10px;
+  box-shadow:inset 0 5px 10px rgba(0,0,0,0.5);
 }
-
 .shelf-row { display:flex; flex-wrap:wrap; gap:10px; }
 
 .envelope {
@@ -80,13 +80,16 @@ button {
   border-radius:6px;
   cursor:pointer;
   position:relative;
+  transition:transform 0.3s;
 }
+
+.envelope:hover { transform:scale(1.05); }
 
 .envelope.full {
   position:fixed;
   top:50%; left:50%;
-  transform:translate(-50%,-50%) scale(1.5);
-  width:400px; height:250px;
+  transform:translate(-50%,-50%) scale(1.6);
+  width:420px; height:260px;
   z-index:999;
 }
 
@@ -96,19 +99,17 @@ button {
   background:#e8c38c;
   clip-path:polygon(0 0,100% 0,50% 100%);
   transform-origin:top;
-  transition:.5s;
+  transition:.6s;
 }
-
 .envelope.open .flap { transform:rotateX(180deg); }
 
 .letter {
   position:absolute;
   inset:10px;
-  background:#fff8e7;
+  background:#fff;
   padding:10px;
   opacity:0;
 }
-
 .envelope.open .letter { opacity:1; }
 
 .delete-btn {
@@ -121,58 +122,71 @@ button {
 
 /* NOTEBOOK */
 .notebook {
-  max-width:600px;
+  width:500px;
+  height:300px;
   margin:20px auto;
-  background:#fff8e7;
-  color:#333;
-  padding:20px;
-  border-radius:10px;
+  perspective:1200px;
 }
+
+.book { width:100%; height:100%; position:relative; }
 
 .page {
-  border-bottom:1px dashed #aaa;
-  margin-bottom:10px;
-  position:relative;
+  width:100%;
+  height:100%;
+  background:#fff8e7;
+  position:absolute;
+  top:0;
+  left:0;
+  padding:20px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.5);
+  transform-origin:left;
+  transition:transform 0.7s;
 }
 
+.page.turn { transform:rotateY(-180deg); }
+
+/* POPUP */
 .popup {
   position:fixed;
   bottom:20px; right:20px;
   background:#fff;
   color:#333;
-  padding:10px;
+  padding:12px;
+  border-radius:10px;
   display:none;
+  box-shadow:0 5px 20px rgba(0,0,0,0.4);
+  animation:fadeIn 0.5s;
 }
 
 </style>
 </head>
+
 <body>
 
-<div class="header">
-  <div class="title">biji-BLOG</div>
-</div>
+<div class="header"><div class="title">biji-BLOG</div></div>
 
 <div class="profile">
-  <label>
-    <img id="profilePic" class="profile-pic" src="https://via.placeholder.com/100">
-    <input type="file" hidden onchange="changePic(event)">
-  </label>
-  <div id="username" class="username" onclick="editName()">Set Name</div>
+<label>
+<img id="profilePic" class="profile-pic" src="https://via.placeholder.com/100">
+<input type="file" hidden onchange="changePic(event)">
+</label>
+<div id="username" class="username" onclick="editName()">Set Name</div>
 </div>
 
-<div class="questions" id="questionsBox"></div>
+<div class="section-header">📬 Daily Letters</div>
+<div class="mailbox" id="mailbox"></div>
 
-<h2 style="text-align:center">✉️ Letters</h2>
+<div class="section-header">✉️ Stored Letters</div>
 <textarea id="quoteText"></textarea>
 <button onclick="addQuote()">Add</button>
 <div class="bookshelf"><div id="shelf" class="shelf-row"></div></div>
 
-<h2 style="text-align:center">📓 Journal</h2>
+<div class="section-header">📓 Journal</div>
 <textarea id="journalInput"></textarea>
 <button onclick="addJournal()">Save</button>
-<div id="notebook" class="notebook"></div>
+<div class="notebook"><div id="book" class="book"></div></div>
 
-<h2 style="text-align:center">⏳ Message</h2>
+<div class="section-header">⏳ Messages</div>
 <input id="popupText">
 <input type="datetime-local" id="popupTime">
 <button onclick="schedulePopup()">Set</button>
@@ -189,7 +203,14 @@ let today=new Date().toDateString();
 
 if(answers.date!==today){answers={date:today};}
 
-const questions=[...Array(20)].map((_,i)=>`Question ${i+1}`);
+const questions=[
+"How are you really feeling today?","What made you smile?","What drained you?",
+"Did you take care of yourself?","What are you grateful for?","What are you worried about?",
+"Did you rest enough?","What inspired you?","What are you avoiding?","What made today meaningful?",
+"Did you feel calm?","Did you feel overwhelmed?","What do you need right now?","What are you proud of?",
+"Did you connect with someone?","What did you learn?","What do you want tomorrow to feel like?",
+"Are you hopeful?","What would you tell yourself?","What do you need to let go of?"
+];
 
 function saveAll(){
 localStorage.setItem('quotes',JSON.stringify(quotes));
@@ -200,9 +221,13 @@ localStorage.setItem('answers',JSON.stringify(answers));
 }
 
 function renderQuestions(){
-questionsBox.innerHTML='';
+mailbox.innerHTML='';
 questions.forEach((q,i)=>{
-questionsBox.innerHTML+=`<label>${q}</label><select onchange="saveAns(${i},this.value)"><option>--</option><option>Yes</option><option>No</option></select>`;
+mailbox.innerHTML+=`<div class='mail'>
+<b>Letter ${i+1}</b><br><small>${today}</small>
+<p>${q}</p>
+<textarea placeholder='Write your reply...' onchange="saveAns(${i},this.value)"></textarea>
+</div>`;
 });
 }
 
@@ -214,15 +239,8 @@ r.onload=()=>{profile.pic=r.result;profilePic.src=r.result;saveAll();};
 r.readAsDataURL(e.target.files[0]);
 }
 
-function editName(){
-let n=prompt('Name');
-if(n){profile.name=n;username.innerText=n;saveAll();}
-}
-
-function loadProfile(){
-if(profile.pic)profilePic.src=profile.pic;
-if(profile.name)username.innerText=profile.name;
-}
+function editName(){let n=prompt('Name');if(n){profile.name=n;username.innerText=n;saveAll();}}
+function loadProfile(){if(profile.pic)profilePic.src=profile.pic;if(profile.name)username.innerText=profile.name;}
 
 function renderQuotes(){
 shelf.innerHTML='';
@@ -236,12 +254,16 @@ shelf.appendChild(d);
 }
 
 function delQ(e,i){e.stopPropagation();quotes.splice(i,1);saveAll();renderQuotes();}
-
 function addQuote(){if(!quoteText.value)return;quotes.unshift({text:quoteText.value});quoteText.value='';saveAll();renderQuotes();}
 
-function addJournal(){if(!journalInput.value)return;journal.unshift({text:journalInput.value,date:new Date().toLocaleDateString()});journalInput.value='';saveAll();renderJournal();}
+function addJournal(){if(!journalInput.value)return;journal.unshift({text:journalInput.value});journalInput.value='';saveAll();renderJournal();}
 
-function renderJournal(){notebook.innerHTML='';journal.forEach((j,i)=>{notebook.innerHTML+=`<div class='page'>${j.text}<button class='delete-btn' onclick='delJ(event,${i})'>x</button></div>`;});}
+function renderJournal(){
+book.innerHTML='';
+journal.forEach((j,i)=>{
+book.innerHTML+=`<div class='page' onclick='this.classList.toggle("turn")'>${j.text}<button class='delete-btn' onclick='delJ(event,${i})'>x</button></div>`;
+});
+}
 
 function delJ(e,i){e.stopPropagation();journal.splice(i,1);saveAll();renderJournal();}
 
