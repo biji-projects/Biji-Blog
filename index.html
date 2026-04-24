@@ -3,47 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Enchanted Letters</title>
+<title>Letter Shop</title>
 
 <style>
 body {
   margin:0;
   font-family: 'Georgia', serif;
-  background:#0f0f14;
-  color:#eee;
+  background:#1a1410;
+  color:#f3e6c9;
 }
 
-h2 {font-weight:300; letter-spacing:2px;}
+h2 {
+  font-weight:400;
+  letter-spacing:2px;
+}
 
+/* SHELF */
 .shelf {
   display:flex;
-  gap:20px;
+  gap:15px;
   flex-wrap:wrap;
   margin-top:20px;
 }
 
+/* ENVELOPE SIDEWAYS */
 .envelope {
-  width:150px;
-  height:100px;
-  background:#1c1c26;
-  border-radius:10px;
+  width:120px;
+  height:80px;
+  background:#d8c7a1;
   position:relative;
+  transform:rotate(-8deg);
   cursor:pointer;
-  box-shadow:0 5px 20px rgba(0,0,0,0.5);
-  transition:transform .3s;
+  box-shadow:0 5px 15px rgba(0,0,0,0.6);
+  transition:all .3s;
 }
 
-.envelope:hover { transform:translateY(-5px); }
+.envelope:hover {
+  transform:rotate(0deg) scale(1.05);
+}
+
+/* FULL SCREEN OPEN */
+.envelope.full {
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(1.5);
+  width:400px;
+  height:250px;
+  z-index:999;
+}
 
 .flap {
   position:absolute;
   top:0;
   width:100%;
   height:50%;
-  background:#2a2a3a;
-  clip-path:polygon(0 0, 100% 0, 50% 100%);
-  transition:transform .5s;
+  background:#c9b28b;
+  clip-path:polygon(0 0,100% 0,50% 100%);
   transform-origin:top;
+  transition:transform .6s;
 }
 
 .envelope.open .flap {
@@ -56,11 +74,9 @@ h2 {font-weight:300; letter-spacing:2px;}
   left:10px;
   right:10px;
   bottom:10px;
-  background:#f5f0e6;
-  color:#222;
-  padding:10px;
-  font-size:12px;
-  border-radius:5px;
+  background:#f5ecd8;
+  color:#3b2f1c;
+  padding:15px;
   opacity:0;
   transition:opacity .5s;
   overflow:auto;
@@ -68,77 +84,74 @@ h2 {font-weight:300; letter-spacing:2px;}
 
 .envelope.open .letter { opacity:1; }
 
+/* NOTEBOOK */
 .notebook {
   width:200px;
   height:120px;
-  background:#1b1b1f;
-  border-left:5px solid #8a6cff;
-  border-radius:8px;
-  cursor:pointer;
+  background:#4b3a24;
+  border-radius:5px;
+  border-left:8px solid #2e2315;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 5px 20px rgba(0,0,0,0.5);
+  cursor:pointer;
+  box-shadow:0 5px 15px rgba(0,0,0,0.6);
 }
 
-.popup {
-  position:fixed;
-  bottom:30px;
-  right:30px;
-  background:#1c1c26;
-  padding:20px;
-  border-radius:15px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.7);
-  display:none;
-  animation:fadeIn .5s ease;
-}
-
-@keyframes fadeIn {
-  from {opacity:0; transform:translateY(20px);} 
-  to {opacity:1; transform:translateY(0);} 
-}
-
-input, textarea {
+/* INK STYLE INPUT */
+textarea, input {
   width:100%;
   margin:5px 0;
-  padding:8px;
-  border-radius:8px;
+  padding:10px;
   border:none;
-  background:#1c1c26;
-  color:white;
+  background:#2b2117;
+  color:#f3e6c9;
+  border-radius:5px;
+  font-family: 'Georgia', serif;
 }
 
 button {
-  padding:10px;
-  background:#8a6cff;
+  background:#7a5c2e;
   border:none;
-  border-radius:8px;
+  padding:10px;
   color:white;
   cursor:pointer;
 }
+
+/* POPUP */
+.popup {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#3b2f1c;
+  padding:20px;
+  border-radius:10px;
+  display:none;
+  box-shadow:0 10px 30px rgba(0,0,0,0.7);
+}
+
 </style>
 </head>
 
 <body>
 
-<h2>✉️ Your Letters</h2>
-<textarea id="quoteText" placeholder="Write your quote..."></textarea>
-<input id="quoteSource" placeholder="Source">
-<input id="quoteImage" placeholder="Image URL">
-<button onclick="addQuote()">Add Envelope</button>
+<h2>✉️ Letter Shelf</h2>
+<textarea id="quoteText" placeholder="Write thy letter..."></textarea>
+<input id="quoteSource" placeholder="Origin of words">
+<button onclick="addQuote()">Seal Letter</button>
 
 <div class="shelf" id="shelf"></div>
 
-<h2>📓 Journal</h2>
-<div class="notebook" onclick="openJournal()">Open Notebook</div>
-<textarea id="journalInput" placeholder="Write gratitude..." style="display:none"></textarea>
-<button onclick="addJournal()" style="display:none" id="saveJournal">Save Entry</button>
+<h2>📓 Old Notebook</h2>
+<div class="notebook" onclick="openJournal()">Open Journal</div>
+<textarea id="journalInput" style="display:none" placeholder="Write with ink..."></textarea>
+<button id="saveJournal" style="display:none" onclick="addJournal()">Save Entry</button>
 <div id="journalList"></div>
 
-<h2>⏳ Scheduled Message</h2>
-<input id="popupText" placeholder="Message">
+<h2>⏳ Timed Message</h2>
+<input id="popupText" placeholder="Write message">
 <input type="datetime-local" id="popupTime">
-<button onclick="schedulePopup()">Set Message</button>
+<button onclick="schedulePopup()">Schedule</button>
 
 <div class="popup" id="popupBox"></div>
 
@@ -147,12 +160,13 @@ let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
 let journal = JSON.parse(localStorage.getItem('journal')) || [];
 
 function renderQuotes(){
-  const shelf = document.getElementById('shelf');
+  const shelf=document.getElementById('shelf');
   shelf.innerHTML='';
 
   quotes.forEach((q,i)=>{
-    const div = document.createElement('div');
+    const div=document.createElement('div');
     div.className='envelope';
+
     div.innerHTML=`
       <div class="flap"></div>
       <div class="letter">
@@ -162,7 +176,10 @@ function renderQuotes(){
       </div>
     `;
 
-    div.onclick=()=>div.classList.toggle('open');
+    div.onclick=()=>{
+      div.classList.toggle('full');
+      div.classList.toggle('open');
+    };
 
     shelf.appendChild(div);
   });
@@ -193,7 +210,7 @@ function renderJournal(){
   const div=document.getElementById('journalList');
   div.innerHTML='';
   journal.forEach(j=>{
-    div.innerHTML+=`<p>📖 ${j.text} <small>${j.date}</small></p>`;
+    div.innerHTML+=`<p>📜 ${j.text} <small>${j.date}</small></p>`;
   });
 }
 
