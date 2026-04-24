@@ -9,9 +9,8 @@
 body {
   margin:0;
   font-family: 'Georgia', serif;
-  background: linear-gradient(to bottom, #f6b36b, #2c3e50);
+  background: linear-gradient(to bottom, #87CEEB, #2c3e50);
   color:#fdf6e3;
-  overflow-x:hidden;
 }
 
 /* FLOATING PARTICLES */
@@ -30,16 +29,15 @@ body::after {
   to {transform:translateY(-200px);} 
 }
 
-/* SIMPLE INPUT - WHITE INSIDE */
+/* INPUT */
 textarea, input {
   width:100%;
   margin:6px 0;
   padding:10px;
   border-radius:8px;
   border:none;
-  background:#ffffff;
+  background:#fff;
   color:#333;
-  box-shadow:0 2px 5px rgba(0,0,0,0.2);
 }
 
 button {
@@ -50,9 +48,8 @@ button {
   border-radius:6px;
 }
 
-/* ENVELOPE */
+/* ENVELOPES */
 .shelf { display:flex; gap:15px; flex-wrap:wrap; }
-
 .envelope {
   width:130px;
   height:90px;
@@ -60,7 +57,6 @@ button {
   border-radius:8px;
   transform:rotate(-6deg);
   cursor:pointer;
-  transition:.3s;
 }
 
 .envelope.full {
@@ -111,29 +107,73 @@ button {
 
 /* NOTEBOOK */
 .notebook {
-  width:180px;
-  height:110px;
+  width:220px;
+  height:140px;
   background:#7c5a3a;
   border-radius:6px;
   cursor:pointer;
+  position:relative;
 }
 
 .notebook.full {
   position:fixed;
   top:50%; left:50%;
-  transform:translate(-50%,-50%) scale(1.3);
-  width:600px; height:400px;
+  transform:translate(-50%,-50%) scale(1.2);
+  width:650px; height:420px;
   background:#fff8e7;
   color:#333;
   padding:20px;
-  overflow:auto;
+  overflow:hidden;
   z-index:999;
-  box-shadow:0 20px 60px rgba(0,0,0,0.6);
 }
 
+/* PAGES */
 .page {
-  margin-bottom:15px;
-  border-bottom:1px dashed #aaa;
+  position:absolute;
+  width:90%;
+  height:85%;
+  background:#fffdf5;
+  left:5%;
+  top:5%;
+  padding:20px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  transform-origin:left;
+  transition:transform 0.6s;
+}
+
+.page.turn {
+  transform:rotateY(-180deg);
+}
+
+/* BOOKMARK */
+.bookmark {
+  position:absolute;
+  top:0;
+  right:40px;
+  width:10px;
+  height:60px;
+  background:red;
+}
+
+/* INK & QUILL */
+.ink {
+  position:absolute;
+  bottom:10px;
+  right:10px;
+  width:30px;
+  height:30px;
+  background:black;
+  border-radius:50%;
+}
+
+.quill {
+  position:absolute;
+  bottom:40px;
+  right:20px;
+  width:2px;
+  height:60px;
+  background:white;
+  transform:rotate(-20deg);
 }
 
 .popup {
@@ -152,15 +192,14 @@ button {
 <body>
 
 <h2>✉️ Letters</h2>
-<textarea id="quoteText" placeholder="Write..."></textarea>
-<input id="quoteSource" placeholder="Source">
+<textarea id="quoteText"></textarea>
+<input id="quoteSource">
 <button onclick="addQuote()">Add</button>
-
 <div class="shelf" id="shelf"></div>
 
 <h2>📓 Notebook</h2>
 <div id="notebook" class="notebook" onclick="toggleNotebook()"></div>
-<textarea id="journalInput" placeholder="Write..."></textarea>
+<textarea id="journalInput"></textarea>
 <button onclick="addJournal()">Save</button>
 
 <h2>⏳ Message</h2>
@@ -174,74 +213,61 @@ button {
 let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
 let journal = JSON.parse(localStorage.getItem('journal')) || [];
 let openNB=false;
+let currentPage=0;
 
 function renderQuotes(){
-  const shelf=document.getElementById('shelf');
   shelf.innerHTML='';
-
   quotes.forEach(q=>{
     const div=document.createElement('div');
     div.className='envelope';
-
-    div.innerHTML=`
-      <div class="flap"></div>
-      <div class="letter">
-        <p class="typewriter">${q.text}</p>
-        <small>${q.source}</small>
-      </div>
-    `;
-
+    div.innerHTML=`<div class="flap"></div><div class="letter"><p class="typewriter">${q.text}</p></div>`;
     div.onclick=()=>{
       div.classList.toggle('full');
       div.classList.toggle('open');
     };
-
     shelf.appendChild(div);
   });
 }
 
 function addQuote(){
-  const text=quoteText.value;
-  const source=quoteSource.value;
-  quotes.unshift({text,source});
+  quotes.unshift({text:quoteText.value});
   localStorage.setItem('quotes',JSON.stringify(quotes));
   renderQuotes();
 }
 
 function toggleNotebook(){
-  const nb=document.getElementById('notebook');
   openNB=!openNB;
-  nb.classList.toggle('full');
+  notebook.classList.toggle('full');
   renderJournal();
 }
 
 function addJournal(){
-  const text=journalInput.value;
-  journal.unshift({text});
+  journal.unshift({text:journalInput.value});
   localStorage.setItem('journal',JSON.stringify(journal));
   renderJournal();
 }
 
 function renderJournal(){
-  const nb=document.getElementById('notebook');
-
   if(openNB){
-    nb.innerHTML='';
-    journal.forEach(j=>{
-      nb.innerHTML+=`<div class="page typewriter">${j.text}</div>`;
+    notebook.innerHTML='<div class="bookmark"></div><div class="ink"></div><div class="quill"></div>';
+
+    journal.forEach((j,i)=>{
+      notebook.innerHTML+=`<div class="page" onclick="turnPage(this)">${j.text}</div>`;
     });
   } else {
-    nb.innerHTML='📓';
+    notebook.innerHTML='📓';
   }
 }
 
-function schedulePopup(){
-  const text=popupText.value;
-  const delay=new Date(popupTime.value).getTime()-Date.now();
+function turnPage(el){
+  el.classList.toggle('turn');
+}
 
+function schedulePopup(){
+  const delay=new Date(popupTime.value).getTime()-Date.now();
   if(delay>0){
     setTimeout(()=>{
-      popupBox.innerText=text;
+      popupBox.innerText=popupText.value;
       popupBox.style.display='block';
       setTimeout(()=>popupBox.style.display='none',5000);
     },delay);
