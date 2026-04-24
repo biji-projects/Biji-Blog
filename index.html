@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ghibli Letter Shop</title>
+<title>biji-BLOG</title>
 
 <style>
 body {
@@ -13,27 +13,58 @@ body {
   color:#fdf6e3;
 }
 
-/* FLOATING PARTICLES */
-body::after {
-  content:"";
-  position:fixed;
-  width:100%; height:100%;
-  background-image: radial-gradient(#ffffff33 1px, transparent 1px);
-  background-size: 40px 40px;
-  animation: float 20s linear infinite;
-  pointer-events:none;
+/* HEADER */
+.header {
+  text-align:center;
+  padding:20px 10px 10px;
 }
 
-@keyframes float {
-  from {transform:translateY(0);} 
-  to {transform:translateY(-200px);} 
+.title {
+  font-size:32px;
+  letter-spacing:2px;
+}
+
+/* PROFILE */
+.profile {
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.profile-pic {
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  border:3px solid #fff;
+  object-fit:cover;
+  cursor:pointer;
+}
+
+.profile input[type="file"] {
+  display:none;
+}
+
+.profile-name {
+  margin-top:10px;
+}
+
+.profile input[type="text"] {
+  text-align:center;
+}
+
+.profile-box {
+  background:#ffffffcc;
+  color:#333;
+  margin:10px auto;
+  padding:10px;
+  border-radius:10px;
+  width:250px;
 }
 
 /* INPUT */
-textarea, input {
+textarea, input, select {
   width:100%;
   margin:6px 0;
-  padding:10px;
+  padding:8px;
   border-radius:8px;
   border:none;
   background:#fff;
@@ -63,8 +94,7 @@ button {
   background:#6b4f2a;
   padding:20px;
   border-radius:10px;
-  box-shadow:inset 0 5px 10px rgba(0,0,0,0.5);
-  margin-top:10px;
+  margin:10px;
 }
 
 .shelf-row {
@@ -73,7 +103,6 @@ button {
   flex-wrap:wrap;
 }
 
-/* ENVELOPES */
 .envelope {
   width:120px;
   height:80px;
@@ -109,7 +138,6 @@ button {
   background:#fff8e7;
   padding:15px;
   opacity:0;
-  overflow:auto;
 }
 
 .envelope.open .letter { opacity:1; }
@@ -121,7 +149,7 @@ button {
   background:#7c5a3a;
   border-radius:6px;
   cursor:pointer;
-  position:relative;
+  margin:10px;
 }
 
 .notebook.full {
@@ -143,7 +171,6 @@ button {
   padding-right:30px;
 }
 
-/* POPUP */
 .popup {
   position:fixed;
   bottom:20px; right:20px;
@@ -159,9 +186,37 @@ button {
 
 <body>
 
+<div class="header">
+  <div class="title">biji-BLOG</div>
+</div>
+
+<div class="profile">
+  <label>
+    <img id="profilePic" class="profile-pic" src="https://via.placeholder.com/100">
+    <input type="file" onchange="changePic(event)">
+  </label>
+
+  <input id="username" class="profile-name" placeholder="Your name">
+
+  <div class="profile-box">
+    <label>How am I today?</label>
+    <select id="mood">
+      <option>Happy</option>
+      <option>Calm</option>
+      <option>Sad</option>
+      <option>Motivated</option>
+    </select>
+
+    <label>Rate your emotion</label>
+    <input type="range" id="emotion" min="1" max="10">
+  </div>
+
+  <button onclick="saveProfile()">Save Profile</button>
+</div>
+
 <h2>✉️ Letters</h2>
-<textarea id="quoteText" placeholder="Write your letter..."></textarea>
-<input id="quoteSource" placeholder="Source">
+<textarea id="quoteText"></textarea>
+<input id="quoteSource">
 <button onclick="addQuote()">Add Letter</button>
 
 <div class="bookshelf">
@@ -170,150 +225,122 @@ button {
 
 <h2>📓 Notebook</h2>
 <div id="notebook" class="notebook" onclick="toggleNotebook()">📓</div>
-<textarea id="journalInput" placeholder="Write your thoughts..."></textarea>
+<textarea id="journalInput"></textarea>
 <button onclick="addJournal()">Save Entry</button>
 
 <h2>⏳ Message</h2>
-<input id="popupText" placeholder="Message">
+<input id="popupText">
 <input type="datetime-local" id="popupTime">
 <button onclick="schedulePopup()">Schedule</button>
 
 <div class="popup" id="popupBox"></div>
 
 <script>
-let quotes = JSON.parse(localStorage.getItem('quotes') || '[]');
-let journal = JSON.parse(localStorage.getItem('journal') || '[]');
-let scheduled = JSON.parse(localStorage.getItem('scheduled') || '[]');
+let quotes = JSON.parse(localStorage.getItem('quotes')||'[]');
+let journal = JSON.parse(localStorage.getItem('journal')||'[]');
+let scheduled = JSON.parse(localStorage.getItem('scheduled')||'[]');
+let profile = JSON.parse(localStorage.getItem('profile')||'{}');
 let openNB=false;
 
-function saveData(){
+function saveAll(){
   localStorage.setItem('quotes', JSON.stringify(quotes));
   localStorage.setItem('journal', JSON.stringify(journal));
   localStorage.setItem('scheduled', JSON.stringify(scheduled));
+  localStorage.setItem('profile', JSON.stringify(profile));
+}
+
+function changePic(e){
+  const file=e.target.files[0];
+  const reader=new FileReader();
+  reader.onload=()=>{
+    profile.pic=reader.result;
+    document.getElementById('profilePic').src=reader.result;
+    saveAll();
+  };
+  if(file) reader.readAsDataURL(file);
+}
+
+function saveProfile(){
+  profile.name=username.value;
+  profile.mood=mood.value;
+  profile.emotion=emotion.value;
+  saveAll();
+}
+
+function loadProfile(){
+  if(profile.pic) profilePic.src=profile.pic;
+  if(profile.name) username.value=profile.name;
+  if(profile.mood) mood.value=profile.mood;
+  if(profile.emotion) emotion.value=profile.emotion;
 }
 
 function renderQuotes(){
-  const shelf=document.getElementById('shelf');
   shelf.innerHTML='';
-
-  quotes.forEach((q,index)=>{
+  quotes.forEach((q,i)=>{
     const div=document.createElement('div');
     div.className='envelope';
-
     div.innerHTML=`
-      <button class="delete-btn" onclick="deleteQuote(event, ${index})">X</button>
+      <button class="delete-btn" onclick="deleteQuote(event,${i})">X</button>
       <div class="flap"></div>
-      <div class="letter">
-        <p>${q.text}</p>
-        <small>${q.source}</small>
-      </div>
-    `;
-
-    div.onclick=()=>{
-      div.classList.toggle('full');
-      div.classList.toggle('open');
-    };
-
+      <div class="letter"><p>${q.text}</p></div>`;
+    div.onclick=()=>{div.classList.toggle('full');div.classList.toggle('open');};
     shelf.appendChild(div);
   });
 }
 
-function deleteQuote(event, index){
-  event.stopPropagation();
-  quotes.splice(index,1);
-  saveData();
-  renderQuotes();
-}
+function deleteQuote(e,i){e.stopPropagation();quotes.splice(i,1);saveAll();renderQuotes();}
 
 function addQuote(){
-  const text=document.getElementById('quoteText').value;
-  const source=document.getElementById('quoteSource').value;
-  if(!text) return;
-
-  quotes.unshift({text, source, date:Date.now()});
-  saveData();
-  renderQuotes();
-
+  if(!quoteText.value) return;
+  quotes.unshift({text:quoteText.value});
   quoteText.value='';
-  quoteSource.value='';
+  saveAll();renderQuotes();
 }
 
-function toggleNotebook(){
-  const nb=document.getElementById('notebook');
-  openNB=!openNB;
-  nb.classList.toggle('full');
-  renderJournal();
-}
+function toggleNotebook(){openNB=!openNB;notebook.classList.toggle('full');renderJournal();}
 
 function addJournal(){
-  const text=document.getElementById('journalInput').value;
-  if(!text) return;
-
-  journal.unshift({text, date:Date.now()});
-  saveData();
-  renderJournal();
-
+  if(!journalInput.value) return;
+  journal.unshift({text:journalInput.value,date:Date.now()});
   journalInput.value='';
+  saveAll();renderJournal();
 }
 
 function renderJournal(){
-  const nb=document.getElementById('notebook');
-
   if(openNB){
-    nb.innerHTML='';
-    journal.forEach((j,index)=>{
-      const div=document.createElement('div');
-      div.className='page';
-      div.innerHTML=`
-        ${j.text}<br>
-        <small>${new Date(j.date).toLocaleDateString()}</small>
-        <button class="delete-btn" onclick="deleteJournal(event, ${index})">X</button>
-      `;
-      nb.appendChild(div);
+    notebook.innerHTML='';
+    journal.forEach((j,i)=>{
+      notebook.innerHTML+=`<div class="page">${j.text}<button class="delete-btn" onclick="deleteJournal(event,${i})">X</button></div>`;
     });
-  } else {
-    nb.innerHTML='📓';
-  }
+  } else notebook.innerHTML='📓';
 }
 
-function deleteJournal(event, index){
-  event.stopPropagation();
-  journal.splice(index,1);
-  saveData();
-  renderJournal();
-}
+function deleteJournal(e,i){e.stopPropagation();journal.splice(i,1);saveAll();renderJournal();}
 
 function schedulePopup(){
-  const text=document.getElementById('popupText').value;
-  const time=new Date(document.getElementById('popupTime').value).getTime();
-  if(!text || !time) return;
-
-  scheduled.push({text, time});
-  saveData();
-  alert('Message scheduled!');
+  const t=new Date(popupTime.value).getTime();
+  if(!popupText.value||!t) return;
+  scheduled.push({text:popupText.value,time:t});
+  saveAll();
 }
 
 function checkScheduled(){
   const now=Date.now();
-  scheduled = scheduled.filter(item=>{
-    if(item.time <= now){
-      showPopup(item.text);
-      return false;
-    }
-    return true;
+  scheduled=scheduled.filter(s=>{
+    if(s.time<=now){showPopup(s.text);return false;} return true;
   });
-  saveData();
+  saveAll();
 }
 
-function showPopup(text){
-  const box=document.getElementById('popupBox');
-  box.innerText=text;
-  box.style.display='block';
-  setTimeout(()=>box.style.display='none',5000);
+function showPopup(t){
+  popupBox.innerText=t;
+  popupBox.style.display='block';
+  setTimeout(()=>popupBox.style.display='none',5000);
 }
 
-setInterval(checkScheduled, 1000);
+setInterval(checkScheduled,1000);
 
+loadProfile();
 renderQuotes();
 renderJournal();
 </script>
