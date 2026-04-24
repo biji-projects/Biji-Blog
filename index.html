@@ -8,43 +8,17 @@
 <style>
 body {
   margin:0;
-  font-family: 'Georgia', serif;
+  font-family: Georgia, serif;
   background: linear-gradient(to bottom, #87CEEB, #2c3e50);
   color:#fdf6e3;
-  overflow-x:hidden;
-}
-
-/* BUBBLES BACKGROUND */
-body::before {
-  content:"";
-  position:fixed;
-  width:100%; height:100%;
-  background-image: radial-gradient(#ffffff33 2px, transparent 2px);
-  background-size: 60px 60px;
-  animation: float 25s linear infinite;
-}
-
-@keyframes float {
-  from {transform:translateY(0);} 
-  to {transform:translateY(-300px);} 
 }
 
 .header { text-align:center; padding:20px; }
 .title { font-size:56px; }
 
-/* LAYOUT */
-.container {
-  display:flex;
-}
-
-.left-panel {
-  width:50%;
-  padding:20px;
-}
-
-.center-panel {
-  width:50%;
-}
+.container { display:flex; }
+.left { width:40%; padding:20px; }
+.center { width:60%; }
 
 /* PROFILE */
 .profile { text-align:center; }
@@ -57,32 +31,26 @@ body::before {
 
 .username { cursor:pointer; }
 
-/* MULTIPLE SIDE IMAGES */
-.side-gallery {
-  position:fixed;
-  right:10px;
-  top:100px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+/* INPUT FIX */
+.small-input {
+  width:80%;
+  padding:6px;
+  margin:5px 0;
 }
 
-.side-gallery img {
-  width:80px; height:80px;
-  border-radius:10px;
-  cursor:pointer;
-}
+button { padding:6px 10px; cursor:pointer; }
 
-/* LETTERS CENTER */
+/* LETTERS */
 .mailbox {
   max-width:500px;
-  margin:auto;
+  margin:20px auto;
 }
 
 .mail {
   background:#f6d8a8;
-  margin:10px;
+  color:#333;
   padding:10px;
+  margin:10px;
   border-radius:8px;
   cursor:pointer;
 }
@@ -91,18 +59,72 @@ body::before {
   position:fixed;
   top:50%; left:50%;
   transform:translate(-50%,-50%) scale(1.4);
-  width:400px;
+  width:350px;
   z-index:999;
 }
 
 .mail-content { display:none; }
 .mail.open .mail-content { display:block; }
 
-.small-input { width:90%; padding:6px; }
+/* BOOKSHELF */
+.bookshelf {
+  background:#6b4f2a;
+  padding:10px;
+  border-radius:10px;
+  margin-top:10px;
+}
 
-/* NOTEBOOK */
+.shelf-row { display:flex; flex-wrap:wrap; gap:10px; }
+
+.envelope {
+  width:100px; height:70px;
+  background:#f6d8a8;
+  border-radius:6px;
+  cursor:pointer;
+  position:relative;
+}
+
+.envelope.full {
+  position:fixed;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%) scale(1.5);
+  width:350px; height:220px;
+  z-index:999;
+}
+
+.flap {
+  position:absolute;
+  width:100%; height:50%;
+  background:#e8c38c;
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  transform-origin:top;
+  transition:.5s;
+}
+
+.envelope.open .flap { transform:rotateX(180deg); }
+
+.letter {
+  position:absolute;
+  inset:8px;
+  background:#fff8e7;
+  padding:8px;
+  color:#000;
+  opacity:0;
+}
+
+.envelope.open .letter { opacity:1; }
+
+.delete-btn {
+  position:absolute;
+  top:5px; right:5px;
+  background:red;
+  color:white;
+  font-size:10px;
+}
+
+/* NOTEBOOK FIX */
 .notebook {
-  margin-top:20px;
+  margin-top:15px;
   background:#8b0000;
   padding:10px;
   border-radius:10px;
@@ -116,13 +138,22 @@ body::before {
 .page {
   min-width:100%;
   background:#fff8e7;
-  color:#222;
-  padding:20px;
-  font-family: 'Courier New', monospace;
+  color:#000;
+  padding:15px;
+  font-family: Georgia, serif;
 }
 
-.nav-btn {
-  margin:5px;
+.nav-btn { margin:5px; }
+
+/* POPUP */
+.popup {
+  position:fixed;
+  bottom:20px; right:20px;
+  background:#fff;
+  color:#333;
+  padding:10px;
+  border-radius:8px;
+  display:none;
 }
 
 </style>
@@ -141,10 +172,13 @@ body::before {
 
 <div class="container">
 
-<div class="left-panel">
+<div class="left">
+
 <h3>✉️ Add Letter</h3>
 <input id="quoteText" class="small-input">
 <button onclick="addQuote()">Add</button>
+
+<div class="bookshelf"><div id="shelf" class="shelf-row"></div></div>
 
 <h3>📓 Journal</h3>
 <input id="journalInput" class="small-input">
@@ -156,23 +190,28 @@ body::before {
 <div class="page-container" id="pages"></div>
 </div>
 
+<h3>⏳ Message</h3>
+<input id="popupText" class="small-input">
+<input type="datetime-local" id="popupTime" class="small-input">
+<button onclick="schedulePopup()">Set</button>
+
 </div>
 
-<div class="center-panel">
+<div class="center">
 <h3 style="text-align:center">📬 Letters Received</h3>
 <div class="mailbox" id="mailbox"></div>
 </div>
 
 </div>
 
-<div class="side-gallery" id="gallery"></div>
+<div id="popupBox" class="popup"></div>
 
 <script>
 let quotes=JSON.parse(localStorage.getItem('quotes')||'[]');
 let journal=JSON.parse(localStorage.getItem('journal')||'[]');
+let scheduled=JSON.parse(localStorage.getItem('scheduled')||'[]');
 let profile=JSON.parse(localStorage.getItem('profile')||'{}');
 let answers=JSON.parse(localStorage.getItem('answers')||'{}');
-let gallery=JSON.parse(localStorage.getItem('gallery')||'[]');
 let pageIndex=0;
 let today=new Date().toDateString();
 
@@ -180,17 +219,15 @@ if(answers.date!==today){answers={date:today};}
 
 const questions=[
 "What made you smile today?","What challenged you today?","What are you grateful for?",
-"Did you take care of yourself?","What do you need right now?","What inspired you?",
-"What are you avoiding?","What made today meaningful?","What are you proud of?",
-"What do you want tomorrow to feel like?"
+"Did you take care of yourself?","What do you need right now?","What inspired you?"
 ];
 
 function saveAll(){
 localStorage.setItem('quotes',JSON.stringify(quotes));
 localStorage.setItem('journal',JSON.stringify(journal));
+localStorage.setItem('scheduled',JSON.stringify(scheduled));
 localStorage.setItem('profile',JSON.stringify(profile));
 localStorage.setItem('answers',JSON.stringify(answers));
-localStorage.setItem('gallery',JSON.stringify(gallery));
 }
 
 function renderQuestions(){
@@ -198,7 +235,7 @@ mailbox.innerHTML='';
 questions.forEach((q,i)=>{
 let d=document.createElement('div');
 d.className='mail';
-d.innerHTML=`<b>Letter ${i+1}</b><p>${q}</p><div class='mail-content'><input class='small-input' placeholder='Reply...' onchange='saveAns(${i},this.value)'></div>`;
+d.innerHTML=`<b>Letter ${i+1}</b><p>${q}</p><div class='mail-content'><input class='small-input' onchange='saveAns(${i},this.value)'></div>`;
 d.onclick=()=>{d.classList.toggle('full');d.classList.toggle('open');};
 mailbox.appendChild(d);
 });
@@ -209,43 +246,21 @@ function saveAns(i,v){answers[i]=v;saveAll();}
 function changePic(e){let r=new FileReader();r.onload=()=>{profile.pic=r.result;profilePic.src=r.result;saveAll();};r.readAsDataURL(e.target.files[0]);}
 
 function editName(){let n=prompt('Name');if(n){profile.name=n;username.innerText=n;saveAll();}}
+function loadProfile(){if(profile.pic)profilePic.src=profile.pic;if(profile.name)username.innerText=profile.name;}
 
-function renderGallery(){
-let g=document.getElementById('gallery');
-g.innerHTML='';
-
-gallery.forEach((img,i)=>{
-let el=document.createElement('img');
-el.src=img;
-el.onclick=()=>{
-let input=document.createElement('input');
-input.type='file';
-input.onchange=e=>{
-let r=new FileReader();
-r.onload=()=>{gallery[i]=r.result;saveAll();renderGallery();};
-r.readAsDataURL(e.target.files[0]);
-};
-input.click();
-};
-g.appendChild(el);
+function renderQuotes(){
+shelf.innerHTML='';
+quotes.forEach((q,i)=>{
+let d=document.createElement('div');
+d.className='envelope';
+d.innerHTML=`<button class='delete-btn' onclick='delQ(event,${i})'>x</button><div class='flap'></div><div class='letter'>${q.text}</div>`;
+d.onclick=()=>{d.classList.toggle('full');d.classList.toggle('open');};
+shelf.appendChild(d);
 });
-
-let add=document.createElement('img');
-add.src='https://via.placeholder.com/80';
-add.onclick=()=>{
-let input=document.createElement('input');
-input.type='file';
-input.onchange=e=>{
-let r=new FileReader();
-r.onload=()=>{gallery.push(r.result);saveAll();renderGallery();};
-r.readAsDataURL(e.target.files[0]);
-};
-input.click();
-};
-g.appendChild(add);
 }
 
-function addQuote(){if(!quoteText.value)return;quotes.unshift({text:quoteText.value});quoteText.value='';saveAll();}
+function delQ(e,i){e.stopPropagation();quotes.splice(i,1);saveAll();renderQuotes();}
+function addQuote(){if(!quoteText.value)return;quotes.unshift({text:quoteText.value});quoteText.value='';saveAll();renderQuotes();}
 
 function addJournal(){if(!journalInput.value)return;journal.unshift({text:journalInput.value});journalInput.value='';saveAll();renderJournal();}
 
@@ -265,12 +280,16 @@ pages.style.display='flex';
 function nextPage(){ if(pageIndex<journal.length-1){pageIndex++; updatePage();}}
 function prevPage(){ if(pageIndex>0){pageIndex--; updatePage();}}
 
-function loadProfile(){if(profile.pic)profilePic.src=profile.pic;if(profile.name)username.innerText=profile.name;}
+function schedulePopup(){let t=new Date(popupTime.value).getTime();if(!popupText.value||!t)return;scheduled.push({text:popupText.value,time:t});saveAll();}
+
+function check(){let now=Date.now();scheduled=scheduled.filter(s=>{if(s.time<=now){popupBox.innerText=s.text;popupBox.style.display='block';setTimeout(()=>popupBox.style.display='none',5000);return false;}return true;});saveAll();}
+
+setInterval(check,1000);
 
 loadProfile();
 renderQuestions();
+renderQuotes();
 renderJournal();
-renderGallery();
 </script>
 
 </body>
