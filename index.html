@@ -1,160 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Quotes & Journal</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
-      margin: 0;
-      padding: 20px;
-    }
-    h2 { margin-top: 30px; }
-    .card {
-      background: white;
-      border-radius: 20px;
-      padding: 15px;
-      margin: 10px 0;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-    }
-    button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 10px;
-      background: black;
-      color: white;
-      cursor: pointer;
-    }
-    img { max-width: 100%; border-radius: 10px; margin-top: 10px; }
-    #popup {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: black;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enchanted Letters</title>
+
+<style>
+body {
+  margin:0;
+  font-family: 'Georgia', serif;
+  background:#0f0f14;
+  color:#eee;
+}
+
+h2 {font-weight:300; letter-spacing:2px;}
+
+.shelf {
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+
+.envelope {
+  width:150px;
+  height:100px;
+  background:#1c1c26;
+  border-radius:10px;
+  position:relative;
+  cursor:pointer;
+  box-shadow:0 5px 20px rgba(0,0,0,0.5);
+  transition:transform .3s;
+}
+
+.envelope:hover { transform:translateY(-5px); }
+
+.flap {
+  position:absolute;
+  top:0;
+  width:100%;
+  height:50%;
+  background:#2a2a3a;
+  clip-path:polygon(0 0, 100% 0, 50% 100%);
+  transition:transform .5s;
+  transform-origin:top;
+}
+
+.envelope.open .flap {
+  transform:rotateX(180deg);
+}
+
+.letter {
+  position:absolute;
+  top:10px;
+  left:10px;
+  right:10px;
+  bottom:10px;
+  background:#f5f0e6;
+  color:#222;
+  padding:10px;
+  font-size:12px;
+  border-radius:5px;
+  opacity:0;
+  transition:opacity .5s;
+  overflow:auto;
+}
+
+.envelope.open .letter { opacity:1; }
+
+.notebook {
+  width:200px;
+  height:120px;
+  background:#1b1b1f;
+  border-left:5px solid #8a6cff;
+  border-radius:8px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 5px 20px rgba(0,0,0,0.5);
+}
+
+.popup {
+  position:fixed;
+  bottom:30px;
+  right:30px;
+  background:#1c1c26;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.7);
+  display:none;
+  animation:fadeIn .5s ease;
+}
+
+@keyframes fadeIn {
+  from {opacity:0; transform:translateY(20px);} 
+  to {opacity:1; transform:translateY(0);} 
+}
+
+input, textarea {
+  width:100%;
+  margin:5px 0;
+  padding:8px;
+  border-radius:8px;
+  border:none;
+  background:#1c1c26;
+  color:white;
+}
+
+button {
+  padding:10px;
+  background:#8a6cff;
+  border:none;
+  border-radius:8px;
+  color:white;
+  cursor:pointer;
+}
+</style>
 </head>
+
 <body>
 
-<div id="popup"></div>
+<h2>✉️ Your Letters</h2>
+<textarea id="quoteText" placeholder="Write your quote..."></textarea>
+<input id="quoteSource" placeholder="Source">
+<input id="quoteImage" placeholder="Image URL">
+<button onclick="addQuote()">Add Envelope</button>
 
-<h2>Add Quote</h2>
-<div class="card">
-  <textarea id="quoteText" placeholder="Your favorite quote..."></textarea>
-  <input id="quoteSource" placeholder="Where did you get it?" />
-  <input id="quoteImage" placeholder="Image URL (optional)" />
-  <button onclick="addQuote()">Save Quote</button>
-</div>
+<div class="shelf" id="shelf"></div>
 
-<h2>Your Quotes</h2>
-<div id="quotes"></div>
+<h2>📓 Journal</h2>
+<div class="notebook" onclick="openJournal()">Open Notebook</div>
+<textarea id="journalInput" placeholder="Write gratitude..." style="display:none"></textarea>
+<button onclick="addJournal()" style="display:none" id="saveJournal">Save Entry</button>
+<div id="journalList"></div>
 
-<h2>Gratitude Journal</h2>
-<div class="card">
-  <textarea id="journalText" placeholder="What are you grateful for?"></textarea>
-  <button onclick="addJournal()">Add Entry</button>
-</div>
-<div id="journal"></div>
+<h2>⏳ Scheduled Message</h2>
+<input id="popupText" placeholder="Message">
+<input type="datetime-local" id="popupTime">
+<button onclick="schedulePopup()">Set Message</button>
 
-<h2>Popup Message</h2>
-<div class="card">
-  <input id="popupInput" placeholder="Type a message..." />
-  <button onclick="showPopup()">Show Popup</button>
-</div>
+<div class="popup" id="popupBox"></div>
 
 <script>
-  let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
-  let journal = JSON.parse(localStorage.getItem('journal')) || [];
+let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
+let journal = JSON.parse(localStorage.getItem('journal')) || [];
 
-  function renderQuotes() {
-    const container = document.getElementById('quotes');
-    container.innerHTML = '';
-    quotes.forEach(q => {
-      container.innerHTML += `
-        <div class="card">
-          <p><i>"${q.text}"</i></p>
-          <small>— ${q.source || 'Unknown'}</small><br>
-          <small>${q.date}</small>
-          ${q.image ? `<img src="${q.image}" />` : ''}
-        </div>
-      `;
-    });
-  }
+function renderQuotes(){
+  const shelf = document.getElementById('shelf');
+  shelf.innerHTML='';
 
-  function renderJournal() {
-    const container = document.getElementById('journal');
-    container.innerHTML = '';
-    journal.forEach(j => {
-      container.innerHTML += `
-        <div class="card">
-          <p>${j.text}</p>
-          <small>${j.date}</small>
-        </div>
-      `;
-    });
-  }
+  quotes.forEach((q,i)=>{
+    const div = document.createElement('div');
+    div.className='envelope';
+    div.innerHTML=`
+      <div class="flap"></div>
+      <div class="letter">
+        <p><i>"${q.text}"</i></p>
+        <small>${q.source}</small><br>
+        <small>${q.date}</small>
+      </div>
+    `;
 
-  function addQuote() {
-    const text = document.getElementById('quoteText').value;
-    const source = document.getElementById('quoteSource').value;
-    const image = document.getElementById('quoteImage').value;
-    if (!text) return;
+    div.onclick=()=>div.classList.toggle('open');
 
-    quotes.unshift({
-      text,
-      source,
-      image,
-      date: new Date().toLocaleDateString()
-    });
+    shelf.appendChild(div);
+  });
+}
 
-    localStorage.setItem('quotes', JSON.stringify(quotes));
-    renderQuotes();
-    document.getElementById('quoteText').value = '';
-    document.getElementById('quoteSource').value = '';
-    document.getElementById('quoteImage').value = '';
-  }
+function addQuote(){
+  const text=document.getElementById('quoteText').value;
+  const source=document.getElementById('quoteSource').value;
 
-  function addJournal() {
-    const text = document.getElementById('journalText').value;
-    if (!text) return;
-
-    journal.unshift({
-      text,
-      date: new Date().toLocaleDateString()
-    });
-
-    localStorage.setItem('journal', JSON.stringify(journal));
-    renderJournal();
-    document.getElementById('journalText').value = '';
-  }
-
-  function showPopup() {
-    const message = document.getElementById('popupInput').value;
-    const popup = document.getElementById('popup');
-    popup.innerText = message;
-    popup.style.display = 'block';
-
-    setTimeout(() => {
-      popup.style.display = 'none';
-    }, 3000);
-  }
-
+  quotes.unshift({text, source, date:new Date().toLocaleDateString()});
+  localStorage.setItem('quotes',JSON.stringify(quotes));
   renderQuotes();
+}
+
+function openJournal(){
+  document.getElementById('journalInput').style.display='block';
+  document.getElementById('saveJournal').style.display='block';
+}
+
+function addJournal(){
+  const text=document.getElementById('journalInput').value;
+  journal.unshift({text, date:new Date().toLocaleDateString()});
+  localStorage.setItem('journal',JSON.stringify(journal));
   renderJournal();
+}
+
+function renderJournal(){
+  const div=document.getElementById('journalList');
+  div.innerHTML='';
+  journal.forEach(j=>{
+    div.innerHTML+=`<p>📖 ${j.text} <small>${j.date}</small></p>`;
+  });
+}
+
+function schedulePopup(){
+  const text=document.getElementById('popupText').value;
+  const time=new Date(document.getElementById('popupTime').value).getTime();
+  const now=Date.now();
+
+  const delay=time-now;
+
+  if(delay>0){
+    setTimeout(()=>{
+      const box=document.getElementById('popupBox');
+      box.innerText=text;
+      box.style.display='block';
+
+      setTimeout(()=>box.style.display='none',5000);
+    },delay);
+  }
+}
+
+renderQuotes();
+renderJournal();
 </script>
 
 </body>
