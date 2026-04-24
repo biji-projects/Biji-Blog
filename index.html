@@ -3,82 +3,69 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Letter Shop</title>
+<title>Ghibli Letter Shop</title>
 
 <style>
 body {
   margin:0;
   font-family: 'Georgia', serif;
-  background:#1a1410;
-  color:#f3e6c9;
+  background: linear-gradient(#2c3e50, #1a2a33);
+  color:#fdf6e3;
 }
 
-h2 {
-  font-weight:400;
-  letter-spacing:2px;
-}
+h2 { font-weight:300; }
 
 /* SHELF */
 .shelf {
   display:flex;
-  gap:15px;
+  gap:20px;
   flex-wrap:wrap;
-  margin-top:20px;
 }
 
-/* ENVELOPE SIDEWAYS */
+/* ENVELOPE */
 .envelope {
-  width:120px;
-  height:80px;
-  background:#d8c7a1;
-  position:relative;
-  transform:rotate(-8deg);
+  width:130px;
+  height:90px;
+  background:#f6d8a8;
+  border-radius:8px;
+  transform:rotate(-6deg);
   cursor:pointer;
-  box-shadow:0 5px 15px rgba(0,0,0,0.6);
+  box-shadow:0 6px 15px rgba(0,0,0,0.4);
   transition:all .3s;
 }
 
-.envelope:hover {
-  transform:rotate(0deg) scale(1.05);
-}
+.envelope:hover { transform:scale(1.05); }
 
-/* FULL SCREEN OPEN */
 .envelope.full {
   position:fixed;
   top:50%;
   left:50%;
-  transform:translate(-50%,-50%) scale(1.5);
-  width:400px;
-  height:250px;
+  transform:translate(-50%,-50%) scale(1.6);
+  width:420px;
+  height:260px;
   z-index:999;
 }
 
 .flap {
   position:absolute;
-  top:0;
   width:100%;
   height:50%;
-  background:#c9b28b;
+  background:#e8c38c;
   clip-path:polygon(0 0,100% 0,50% 100%);
   transform-origin:top;
-  transition:transform .6s;
+  transition:.6s;
 }
 
-.envelope.open .flap {
-  transform:rotateX(180deg);
-}
+.envelope.open .flap { transform:rotateX(180deg); }
 
 .letter {
   position:absolute;
-  top:10px;
-  left:10px;
-  right:10px;
-  bottom:10px;
-  background:#f5ecd8;
-  color:#3b2f1c;
+  inset:10px;
+  background:#fff8e7;
+  color:#3a2f1d;
   padding:15px;
   opacity:0;
-  transition:opacity .5s;
+  transition:.5s;
   overflow:auto;
 }
 
@@ -86,48 +73,66 @@ h2 {
 
 /* NOTEBOOK */
 .notebook {
-  width:200px;
-  height:120px;
-  background:#4b3a24;
-  border-radius:5px;
-  border-left:8px solid #2e2315;
+  width:180px;
+  height:110px;
+  background:#7c5a3a;
+  border-radius:6px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.5);
+  cursor:pointer;
   display:flex;
   align-items:center;
   justify-content:center;
-  cursor:pointer;
-  box-shadow:0 5px 15px rgba(0,0,0,0.6);
 }
 
-/* INK STYLE INPUT */
+/* FULL NOTEBOOK VIEW */
+.notebook.full {
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(1.4);
+  width:500px;
+  height:350px;
+  background:#fff8e7;
+  color:#333;
+  padding:20px;
+  overflow:auto;
+  z-index:999;
+}
+
+.page {
+  border-bottom:1px dashed #ccc;
+  margin-bottom:10px;
+  padding-bottom:10px;
+}
+
 textarea, input {
   width:100%;
   margin:5px 0;
-  padding:10px;
+  padding:8px;
+  border-radius:6px;
   border:none;
-  background:#2b2117;
-  color:#f3e6c9;
-  border-radius:5px;
-  font-family: 'Georgia', serif;
+  background:#2a3a44;
+  color:white;
 }
 
 button {
-  background:#7a5c2e;
+  background:#6ab04c;
   border:none;
   padding:10px;
   color:white;
   cursor:pointer;
 }
 
-/* POPUP */
 .popup {
   position:fixed;
   bottom:20px;
   right:20px;
-  background:#3b2f1c;
-  padding:20px;
-  border-radius:10px;
+  background:#fff8e7;
+  color:#333;
+  padding:15px;
+  border-radius:12px;
   display:none;
-  box-shadow:0 10px 30px rgba(0,0,0,0.7);
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
 }
 
 </style>
@@ -135,21 +140,20 @@ button {
 
 <body>
 
-<h2>✉️ Letter Shelf</h2>
-<textarea id="quoteText" placeholder="Write thy letter..."></textarea>
-<input id="quoteSource" placeholder="Origin of words">
-<button onclick="addQuote()">Seal Letter</button>
+<h2>✉️ Letters</h2>
+<textarea id="quoteText" placeholder="Write a gentle thought..."></textarea>
+<input id="quoteSource" placeholder="Where it came from">
+<button onclick="addQuote()">Store Letter</button>
 
 <div class="shelf" id="shelf"></div>
 
-<h2>📓 Old Notebook</h2>
-<div class="notebook" onclick="openJournal()">Open Journal</div>
-<textarea id="journalInput" style="display:none" placeholder="Write with ink..."></textarea>
-<button id="saveJournal" style="display:none" onclick="addJournal()">Save Entry</button>
-<div id="journalList"></div>
+<h2>📓 Notebook</h2>
+<div id="notebook" class="notebook" onclick="toggleNotebook()">Open</div>
+<textarea id="journalInput" placeholder="Write something you're grateful for..."></textarea>
+<button onclick="addJournal()">Save</button>
 
-<h2>⏳ Timed Message</h2>
-<input id="popupText" placeholder="Write message">
+<h2>⏳ Message</h2>
+<input id="popupText" placeholder="Message">
 <input type="datetime-local" id="popupTime">
 <button onclick="schedulePopup()">Schedule</button>
 
@@ -158,19 +162,20 @@ button {
 <script>
 let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
 let journal = JSON.parse(localStorage.getItem('journal')) || [];
+let notebookOpen = false;
 
 function renderQuotes(){
   const shelf=document.getElementById('shelf');
   shelf.innerHTML='';
 
-  quotes.forEach((q,i)=>{
+  quotes.forEach(q=>{
     const div=document.createElement('div');
     div.className='envelope';
 
     div.innerHTML=`
       <div class="flap"></div>
       <div class="letter">
-        <p><i>"${q.text}"</i></p>
+        <p><i>${q.text}</i></p>
         <small>${q.source}</small><br>
         <small>${q.date}</small>
       </div>
@@ -194,9 +199,11 @@ function addQuote(){
   renderQuotes();
 }
 
-function openJournal(){
-  document.getElementById('journalInput').style.display='block';
-  document.getElementById('saveJournal').style.display='block';
+function toggleNotebook(){
+  const nb=document.getElementById('notebook');
+  notebookOpen=!notebookOpen;
+  nb.classList.toggle('full');
+  renderJournal();
 }
 
 function addJournal(){
@@ -207,26 +214,28 @@ function addJournal(){
 }
 
 function renderJournal(){
-  const div=document.getElementById('journalList');
-  div.innerHTML='';
-  journal.forEach(j=>{
-    div.innerHTML+=`<p>📜 ${j.text} <small>${j.date}</small></p>`;
-  });
+  const nb=document.getElementById('notebook');
+
+  if(notebookOpen){
+    nb.innerHTML='';
+    journal.forEach(j=>{
+      nb.innerHTML+=`<div class="page">📖 ${j.text}<br><small>${j.date}</small></div>`;
+    });
+  } else {
+    nb.innerHTML='Open';
+  }
 }
 
 function schedulePopup(){
   const text=document.getElementById('popupText').value;
   const time=new Date(document.getElementById('popupTime').value).getTime();
-  const now=Date.now();
-
-  const delay=time-now;
+  const delay=time-Date.now();
 
   if(delay>0){
     setTimeout(()=>{
       const box=document.getElementById('popupBox');
       box.innerText=text;
       box.style.display='block';
-
       setTimeout(()=>box.style.display='none',5000);
     },delay);
   }
