@@ -11,18 +11,46 @@ body {
   font-family: 'Georgia', serif;
   background: linear-gradient(#2c3e50, #1a2a33);
   color:#fdf6e3;
+  overflow-x:hidden;
 }
 
-h2 { font-weight:300; }
+/* FLOATING PARTICLES */
+body::after {
+  content:"";
+  position:fixed;
+  width:100%; height:100%;
+  background-image: radial-gradient(#ffffff22 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: float 20s linear infinite;
+  pointer-events:none;
+}
 
-/* SHELF */
-.shelf {
-  display:flex;
-  gap:20px;
-  flex-wrap:wrap;
+@keyframes float {
+  from {transform:translateY(0);} 
+  to {transform:translateY(-200px);} 
+}
+
+/* SIMPLE INPUT */
+textarea, input {
+  width:100%;
+  margin:6px 0;
+  padding:8px;
+  border:none;
+  border-bottom:1px solid #ccc;
+  background:transparent;
+  color:#fff;
+}
+
+button {
+  background:#6ab04c;
+  border:none;
+  padding:8px 12px;
+  cursor:pointer;
 }
 
 /* ENVELOPE */
+.shelf { display:flex; gap:15px; flex-wrap:wrap; }
+
 .envelope {
   width:130px;
   height:90px;
@@ -30,26 +58,20 @@ h2 { font-weight:300; }
   border-radius:8px;
   transform:rotate(-6deg);
   cursor:pointer;
-  box-shadow:0 6px 15px rgba(0,0,0,0.4);
-  transition:all .3s;
+  transition:.3s;
 }
-
-.envelope:hover { transform:scale(1.05); }
 
 .envelope.full {
   position:fixed;
-  top:50%;
-  left:50%;
+  top:50%; left:50%;
   transform:translate(-50%,-50%) scale(1.6);
-  width:420px;
-  height:260px;
+  width:420px; height:260px;
   z-index:999;
 }
 
 .flap {
   position:absolute;
-  width:100%;
-  height:50%;
+  width:100%; height:50%;
   background:#e8c38c;
   clip-path:polygon(0 0,100% 0,50% 100%);
   transform-origin:top;
@@ -62,14 +84,28 @@ h2 { font-weight:300; }
   position:absolute;
   inset:10px;
   background:#fff8e7;
-  color:#3a2f1d;
   padding:15px;
   opacity:0;
-  transition:.5s;
-  overflow:auto;
 }
 
 .envelope.open .letter { opacity:1; }
+
+/* TYPEWRITER */
+.typewriter {
+  overflow:hidden;
+  white-space:nowrap;
+  border-right:2px solid black;
+  animation: typing 2s steps(30,end), blink .7s infinite;
+}
+
+@keyframes typing {
+  from { width:0 }
+  to { width:100% }
+}
+
+@keyframes blink {
+  50% { border-color: transparent }
+}
 
 /* NOTEBOOK */
 .notebook {
@@ -77,62 +113,35 @@ h2 { font-weight:300; }
   height:110px;
   background:#7c5a3a;
   border-radius:6px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.5);
   cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
 
-/* FULL NOTEBOOK VIEW */
 .notebook.full {
   position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%) scale(1.4);
-  width:500px;
-  height:350px;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%) scale(1.3);
+  width:600px; height:400px;
   background:#fff8e7;
   color:#333;
   padding:20px;
   overflow:auto;
   z-index:999;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6);
 }
 
 .page {
-  border-bottom:1px dashed #ccc;
-  margin-bottom:10px;
-  padding-bottom:10px;
-}
-
-textarea, input {
-  width:100%;
-  margin:5px 0;
-  padding:8px;
-  border-radius:6px;
-  border:none;
-  background:#2a3a44;
-  color:white;
-}
-
-button {
-  background:#6ab04c;
-  border:none;
-  padding:10px;
-  color:white;
-  cursor:pointer;
+  margin-bottom:15px;
+  border-bottom:1px dashed #aaa;
 }
 
 .popup {
   position:fixed;
-  bottom:20px;
-  right:20px;
+  bottom:20px; right:20px;
   background:#fff8e7;
   color:#333;
   padding:15px;
   border-radius:12px;
   display:none;
-  box-shadow:0 10px 30px rgba(0,0,0,0.5);
 }
 
 </style>
@@ -141,28 +150,28 @@ button {
 <body>
 
 <h2>✉️ Letters</h2>
-<textarea id="quoteText" placeholder="Write a gentle thought..."></textarea>
-<input id="quoteSource" placeholder="Where it came from">
-<button onclick="addQuote()">Store Letter</button>
+<textarea id="quoteText" placeholder="Write..."></textarea>
+<input id="quoteSource" placeholder="Source">
+<button onclick="addQuote()">Add</button>
 
 <div class="shelf" id="shelf"></div>
 
 <h2>📓 Notebook</h2>
-<div id="notebook" class="notebook" onclick="toggleNotebook()">Open</div>
-<textarea id="journalInput" placeholder="Write something you're grateful for..."></textarea>
+<div id="notebook" class="notebook" onclick="toggleNotebook()"></div>
+<textarea id="journalInput" placeholder="Write..."></textarea>
 <button onclick="addJournal()">Save</button>
 
 <h2>⏳ Message</h2>
-<input id="popupText" placeholder="Message">
+<input id="popupText">
 <input type="datetime-local" id="popupTime">
-<button onclick="schedulePopup()">Schedule</button>
+<button onclick="schedulePopup()">Set</button>
 
 <div class="popup" id="popupBox"></div>
 
 <script>
 let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
 let journal = JSON.parse(localStorage.getItem('journal')) || [];
-let notebookOpen = false;
+let openNB=false;
 
 function renderQuotes(){
   const shelf=document.getElementById('shelf');
@@ -175,9 +184,8 @@ function renderQuotes(){
     div.innerHTML=`
       <div class="flap"></div>
       <div class="letter">
-        <p><i>${q.text}</i></p>
-        <small>${q.source}</small><br>
-        <small>${q.date}</small>
+        <p class="typewriter">${q.text}</p>
+        <small>${q.source}</small>
       </div>
     `;
 
@@ -191,59 +199,23 @@ function renderQuotes(){
 }
 
 function addQuote(){
-  const text=document.getElementById('quoteText').value;
-  const source=document.getElementById('quoteSource').value;
-
-  quotes.unshift({text, source, date:new Date().toLocaleDateString()});
+  const text=quoteText.value;
+  const source=quoteSource.value;
+  quotes.unshift({text,source});
   localStorage.setItem('quotes',JSON.stringify(quotes));
   renderQuotes();
 }
 
 function toggleNotebook(){
   const nb=document.getElementById('notebook');
-  notebookOpen=!notebookOpen;
+  openNB=!openNB;
   nb.classList.toggle('full');
   renderJournal();
 }
 
 function addJournal(){
-  const text=document.getElementById('journalInput').value;
-  journal.unshift({text, date:new Date().toLocaleDateString()});
+  const text=journalInput.value;
+  journal.unshift({text});
   localStorage.setItem('journal',JSON.stringify(journal));
   renderJournal();
 }
-
-function renderJournal(){
-  const nb=document.getElementById('notebook');
-
-  if(notebookOpen){
-    nb.innerHTML='';
-    journal.forEach(j=>{
-      nb.innerHTML+=`<div class="page">📖 ${j.text}<br><small>${j.date}</small></div>`;
-    });
-  } else {
-    nb.innerHTML='Open';
-  }
-}
-
-function schedulePopup(){
-  const text=document.getElementById('popupText').value;
-  const time=new Date(document.getElementById('popupTime').value).getTime();
-  const delay=time-Date.now();
-
-  if(delay>0){
-    setTimeout(()=>{
-      const box=document.getElementById('popupBox');
-      box.innerText=text;
-      box.style.display='block';
-      setTimeout(()=>box.style.display='none',5000);
-    },delay);
-  }
-}
-
-renderQuotes();
-renderJournal();
-</script>
-
-</body>
-</html>
